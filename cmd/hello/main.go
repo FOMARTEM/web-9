@@ -33,6 +33,7 @@ func (h *Handlers) GetHello(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, "error"+err.Error())
 	}
+
 	return c.String(http.StatusOK, "Hello"+" "+msg+"!")
 }
 
@@ -40,12 +41,15 @@ func (h *Handlers) PostHello(c echo.Context) error {
 	input := struct {
 		Msg string `json:"msg"`
 	}{}
+
 	if err := c.Bind(&input); err != nil {
 		return c.String(http.StatusBadRequest, "error"+err.Error())
 	}
+
 	if err := h.dbProvider.InsertHello(input.Msg); err != nil {
 		return c.String(http.StatusInternalServerError, "error"+err.Error())
 	}
+
 	return c.String(http.StatusCreated, "Created")
 }
 
@@ -53,21 +57,26 @@ func (dp *DatabaseProvider) SelectHello() (string, error) {
 	var msg string
 	row := dp.db.QueryRow("SELECT message FROM hello ORDER BY RANDOM() LIMIT 1")
 	err := row.Scan(&msg)
+
 	if err != nil {
 		return "", err
 	}
+
 	return msg, nil
 }
 
 func (dp *DatabaseProvider) InsertHello(msg string) error {
 	_, err := dp.db.Exec("INSERT INTO hello (message) VALUES ($1)", msg)
+
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func main() {
+
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
 		host, port, user, password, dbname)
